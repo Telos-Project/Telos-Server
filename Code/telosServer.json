@@ -1,0 +1,22 @@
+{
+	"utilities": {
+		"telosServer": {
+			"source": "telos-server/telosServer.js",
+			"properties": {
+				"type": "bus-module"
+			}
+		},
+		"telosRouter": {
+			"source": "telos-server/telosRouter.js",
+			"properties": {
+				"type": "bus-module"
+			}
+		},
+		"telosMiddleware": {
+			"source": "telos-server/telosMiddleware.js",
+			"properties": {
+				"type": "telos-server-middleware"
+			}
+		}
+	}
+}
