@@ -36,8 +36,8 @@ function getArgOptions(args) {
 
 	args.forEach((item, index) => {
 
-		if(item.startsWith("-") && index < packet.content.length - 1)
-			options[item.substring(1)] = packet.content[index + 1];
+		if(item.startsWith("-") && index < args.length - 1)
+			options[item.substring(1)] = args[index + 1];
 	});
 
 	return options;
