@@ -2,19 +2,11 @@ var apint = require("apint");
 var path = require("path");
 var serverUtils = require("./serverUtils.js");
 
-var config = serverUtils.getConfigOptions();
-
-config.directories = config.directories != null ?
-	config.directories : [process.cwd() + path.sep + "telos"];
-
-config.directories = config.directories.map(
-	item => item.startsWith("./") ?
-		process.cwd() + path.sep + item.substring(2) : item
-);
-
-config.default = { };
-
 var telosRouter = {
+	config: {
+		directories: [process.cwd() + path.sep + "telos"],
+		default: { }
+	},
 	middleware: [],
 	query: (packet) => {
 
@@ -51,6 +43,17 @@ var telosRouter = {
 
 				telosRouter.middleware = middleware;
 
+				Object.assign(
+					telosRouter.config,
+					packet.content.options.options
+				);
+
+				telosRouter.config.directories =
+					telosRouter.config.directories.map(
+						item => item.startsWith("./") ?
+							process.cwd() + path.sep + item.substring(2) : item
+					);
+
 				return;
 			}
 
@@ -64,7 +67,7 @@ var telosRouter = {
 
 		let file = serverUtils.getFile(
 			packet.request.uri,
-			config.directories
+			telosRouter.config.directories
 		);
 
 		let response = telosRouter.middleware.map(
@@ -96,18 +99,18 @@ var telosRouter = {
 				<!DOCTYPE HTML>
 				<html lang="en-US">
 					<head>
-						${config.default.missing != null ?
+						${telosRouter.config.default.missing != null ?
 							`<meta
 								http-equiv="refresh"
 								content="0; url=${
-									config.default.missing
+									telosRouter.config.default.missing
 								}"
 							/>` :
 							""
 						}
 					</head>
 					<body>
-						${config.default.missing == null ?
+						${telosRouter.config.default.missing == null ?
 							"<pre>404: Not Found</pre>" :
 							""
 						}

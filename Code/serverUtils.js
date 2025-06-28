@@ -1,3 +1,4 @@
+var apint = require("apint");
 var fs = require("fs");
 var path = require("path");
 
@@ -29,33 +30,6 @@ var fileTypes = [
 	'doc',
 	'mp4'
 ];
-
-function getArgOptions(args) {
-
-	let options = { };
-
-	args.forEach((item, index) => {
-
-		if(item.startsWith("-") && index < args.length - 1)
-			options[item.substring(1)] = args[index + 1];
-	});
-
-	return options;
-}
-
-function getConfigOptions() {
-
-	try {
-
-		return JSON.parse(
-			fs.readFileSync("./APInt.json", "utf-8")
-		).utilities["telos-config"].properties;
-	}
-
-	catch(error) {
-		return { };
-	}
-}
 
 function getFile(uri, directories) {
 
@@ -269,8 +243,6 @@ function processRequest(request, protocol, callback) {
 module.exports = {
 	extensionTypes,
 	fileTypes,
-	getArgOptions,
-	getConfigOptions,
 	getFile,
 	getFiles,
 	isHTTPJSON,
