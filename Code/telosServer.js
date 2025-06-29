@@ -131,7 +131,7 @@ var telosServer = {
 			telosServer.server = http.createServer(telosServer.process);
 
 			telosServer.server.listen(
-				options.port != null ? options.port : 80
+				process.env.PORT || (options.port != null ? options.port : 80)
 			);
 
 			console.log("TELOS SERVER ON!");
