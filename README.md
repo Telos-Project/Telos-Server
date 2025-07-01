@@ -2,6 +2,8 @@
 
 ## 1 - Abstract
 
+***To Serve Code***
+
 Telos Server is a server built on [Telos Origin](https://github.com/Telos-Project/Telos-Origin),
 which operates on a declarative file system based CMS.
 
