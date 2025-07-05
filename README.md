@@ -11,13 +11,13 @@ which operates on a declarative file system based CMS.
 
 ### 2.1 - Content
 
-The Telos Server shall source its content and endpoints from a folder on disk, which by default
-shall be called "telos", and shall be stored in the same directory the server process runs from.
+Telos Server shall source its content and endpoints from a folder on disk, which by default shall
+be called "telos", and shall be stored in the same directory the server process runs from.
 
 File names in the telos folder shall have their names segmented into chunks by periods, with the
 first chunk specifying the name of the file, the last chunk specifying the extension, and each
 intermediate chunk specifying a property. If a property chunk contains a hyphen, the part preceding
-the hyphen shall specify the name of the property, and the part following the hypen shall specify
+the hyphen shall specify the name of the property, and the part following the hyphen shall specify
 the value of the property.
 
 Folder names may be split the same way, though in folders the final chunk will also be a property
@@ -85,5 +85,28 @@ the following command before uploading your project:
 
 #### 2.2.2 - Configuration
 
-The defualt port can be reconfigured with a Telos Config utility with the desired port specified as
+The default port can be reconfigured with a Telos Config utility with the desired port specified as
 a numerical field in the properties with the alias "port".
+
+#### 2.2.3 - Middleware
+
+Telos Server may be extended through middleware referenced in the Telos Origin APInt.
+
+The utilities which reference such middleware shall have the "type" property specified as
+"telos-server-middleware", and shall reference as their source a CommonJS module which exports an
+object with a "middleware" field containing a list of middleware functions.
+
+A middleware function shall take two arguments, the first being the HTTP request which invoked it
+it the form of an HTTP JSON object, and the second being a file metadata object specifying
+information about the file on disk which matches the request URI. Said metadata object shall have
+the fields "file", containing a string specifying the full file path, "meta", containing an object
+specifying the properties derived from the file path as shown in section 2.1.1, and "type",
+containing a string specifying the file type.
+
+The function may return an HTTP JSON response object representing the response to be returned to
+the client. Additional fields may be added to the response object for certain behaviors. Ideally,
+only one middleware function should return a response for each request, but in the event that there
+are multiple responses, a "priority" field containing a number may be added to indicate how the
+response should be weighed relative to others. If the response is to return a filestream rather
+than a text response, the body of the response shall be set to the path to the streamed resource,
+and the response object shall have the field "file", containing a boolean value of true.
