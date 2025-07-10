@@ -9,10 +9,11 @@ which operates on a declarative file system based CMS.
 
 ## 2 - Contents
 
-### 2.1 - Content
+### 2.1 - Telos Folder
 
-Telos Server shall source its content and endpoints from a folder on disk, which by default shall
-be called "telos", and shall be stored in the same directory the server process runs from.
+Telos Server shall source its content and endpoints from a Telos folder, stored on disk, which by
+default shall be called "telos", and shall be stored in the same directory the server process runs
+from.
 
 File names in the telos folder shall have their names segmented into chunks by periods, with the
 first chunk specifying the name of the file, the last chunk specifying the extension, and each
@@ -57,15 +58,41 @@ blank response.
 
 If a file has the property "private", it shall be inaccessible from the client.
 
-##### 2.1.2.3 - Universal Preprocessor
+##### 2.1.2.3 - Task
+
+If a JS file has the property "task", it shall serve as a script in a persistent background
+process. It shall use Common JS to assign as the module exports a single function which, at regular
+intervals, shall be invoked by an event handler responsive to the Telos engine.
+
+##### 2.1.2.4 - Universal Preprocessor
 
 If a file has the property "pup", it will be processed by the
 [Universal Preprocessor](https://github.com/Telos-Project/Universal-Preprocessor) before being
 fetched.
 
-### 2.2 - Usage
+### 2.2 - Telos Engine
 
-#### 2.2.1 - Setup
+The Telos engine is a background process embedded in an associated bus module, which is integrated
+into, but may be used independently of, Telos Server.
+
+The Telos engine, at regular intervals, calls the bus net of Telos Origin with the following
+object:
+
+    { tags: ["telos-engine"] }
+
+The Telos engine also stores a reference to the initialization call object of Telos Origin, which
+shall be returned from the Telos engine bus module query function if the following object is passed
+to it:
+
+    { tags: ["telos-configuration"] }
+
+The default interval for the Telos engine is 60 times per second. This may be altered using a
+number assigned to the content.options.options.engineInterval field in the initialization call
+object of Telos Origin specifying how long in seconds to wait between each interval.
+
+### 2.3 - Usage
+
+#### 2.3.1 - Setup
 
 First, create a folder for your project. Within this folder, create your "telos" folder, and
 populate it with the content you intend to serve.
@@ -83,12 +110,12 @@ the following command before uploading your project:
 
     npx telos-origin -m wrap
 
-#### 2.2.2 - Configuration
+#### 2.3.2 - Configuration
 
 The default port can be reconfigured with a Telos Config utility with the desired port specified as
 a numerical field in the properties with the alias "port".
 
-#### 2.2.3 - Middleware
+#### 2.3.3 - Middleware
 
 Telos Server may be extended through middleware referenced in the Telos Origin APInt.
 
