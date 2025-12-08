@@ -1,7 +1,6 @@
 var fs = use("fs");
 var path = use("path");
 var pup = require("universal-preprocessor");
-var pupLangs = require("universal-preprocessor/pupLangs");
 
 let extensionTypes = {
 	'txt': 'text/plain',
@@ -161,7 +160,7 @@ function middlewareText(packet, file) {
 function preprocess(string, file) {
 
 	return (file != null ? file.meta.pup != null : true) ?
-		pup.preprocess(pupLangs, string) : string;
+		pup.preprocess(string) : string;
 }
 
 module.exports = {
