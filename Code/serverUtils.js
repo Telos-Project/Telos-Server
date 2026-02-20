@@ -30,6 +30,33 @@ var fileTypes = [
 	'mp4'
 ];
 
+function getAllFiles(directory) {
+
+	let items = { };
+
+	if(Array.isArray(directory)) {
+
+		directory.forEach(value => {
+			Object.assign(items, getAllFiles(value));
+		});
+
+		return items;
+	}
+
+	fs.readdirSync(directory).forEach(value => {
+		
+		value = directory + path.sep + value;
+
+		if(fs.statSync(value).isFile())
+			items[value] = getFileData(value);
+
+		else
+			Object.assign(items, getAllFiles(value));
+	})
+
+	return items;
+}
+
 function getFile(uri, directories) {
 
 	try {
@@ -47,37 +74,42 @@ function getFile(uri, directories) {
 			directories
 		).map(file => {
 
-			let type = file.includes(".") ?
-				file.substring(file.lastIndexOf(".") + 1) : null;
+			let data = getFileData(file);
 
-			let result = {
-				file: file,
-				folder: fs.lstatSync(file).isDirectory(),
-				meta: file.split(/[\/\\]/).map(item =>
-					item.split(".").slice(1).reduce(
-						(value, item) => {
-
-							item = item.split("-");
-
-							let key = item[0].toLowerCase()
-
-							if(key != type)
-								value[key] = item.slice(1).join("-");
-
-							return value;
-						},
-						{ }
-					)
-				).reduce((value, item) => Object.assign(value, item), { }),
-				type: type
-			}
-
-			return result.meta.private == null ? result : null;
+			return data.meta.private == null ? data : null;
 		})[0];
 	}
 
 	catch(error) {
 		return null;
+	}
+}
+
+function getFileData(file) {
+
+	let type = file.includes(".") ?
+		file.substring(file.lastIndexOf(".") + 1) : null;
+
+	return {
+		file: file,
+		folder: fs.lstatSync(file).isDirectory(),
+		meta: file.split(/[\/\\]/).map(item =>
+			item.split(".").slice(1).reduce(
+				(value, item) => {
+
+					item = item.split("-");
+
+					let key = item[0].toLowerCase()
+
+					if(key != type)
+						value[key] = item.slice(1).join("-");
+
+					return value;
+				},
+				{ }
+			)
+		).reduce((value, item) => Object.assign(value, item), { }),
+		type: type
 	}
 }
 
@@ -242,7 +274,9 @@ function processRequest(request, protocol, callback) {
 module.exports = {
 	extensionTypes,
 	fileTypes,
+	getAllFiles,
 	getFile,
+	getFileData,
 	getFiles,
 	isHTTPJSON,
 	processRequest

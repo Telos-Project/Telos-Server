@@ -1,5 +1,11 @@
 {
 	"utilities": {
+		"telosEngine": {
+			"source": "telos-server/telosEngine.js",
+			"properties": {
+				"type": "bus-module"
+			}
+		},
 		"telosServer": {
 			"source": "telos-server/telosServer.js",
 			"properties": {

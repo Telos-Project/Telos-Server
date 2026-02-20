@@ -16,6 +16,42 @@ var telosRouter = {
 
 				packet = JSON.parse(packet);
 
+				if(packet.tags != null) {
+
+					if(packet.tags.length == 1 &&
+						packet.tags[0] == "telos-engine") {
+					
+						telosRouter.tasks = telosRouter.tasks != null ?
+							telosRouter.tasks :
+							Object.values(
+								serverUtils.getAllFiles(
+									telosRouter.config.directories
+								)
+							).filter(
+								item => item != null
+							).filter(
+								item =>
+									Object.keys(item.meta).includes("task") &&
+										item.type == "js"
+							).map(
+								item => item.file
+							);
+
+						telosRouter.tasks.forEach(item => {
+
+							try {
+								use(item)();
+							}
+
+							catch(error) {
+								console.log(error);
+							}
+						});
+
+						return;
+					}
+				}
+
 				let middleware = [];
 
 				apint.queryUtilities(
@@ -119,6 +155,7 @@ var telosRouter = {
 			`
 		};
 	},
+	tasks: null,
 	tags: ["telos-origin", "telos-router"]
 };
 
