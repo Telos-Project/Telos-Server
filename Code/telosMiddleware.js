@@ -1,6 +1,5 @@
-var fs = use("fs");
-var path = use("path");
 var pup = require("universal-preprocessor");
+var virtualSystem = require("virtual-system");
 
 let extensionTypes = {
 	'txt': 'text/plain',
@@ -49,23 +48,14 @@ function middlewareFolder(packet, file) {
 	
 	if(file.type != "folder")
 		return;
-	
-	let result = [[], []];
-
-	fs.readdirSync(file.file).forEach(item => {
-
-		result[
-			fs.lstatSync(
-				file.file + path.sep + item
-			).isDirectory() ? 0 : 1
-		].push(item);
-	})
 
 	return {
 		headers: {
 			"Content-Type": "text/json"
 		},
-		body: JSON.stringify(result, null, "\t")
+		body: JSON.stringify(
+			virtualSystem.getResource(file.file), null, "\t"
+		)
 	}
 }
 
@@ -109,7 +99,10 @@ function middlewareJS(packet, file) {
 				<script>
 
 					${preprocess(
-						fs.readFileSync(file.file, "utf-8")
+						virtualSystem.getResource(
+							file.file.
+								split(":\\").join("://").split("\\").join("/")
+						)
 					)}
 
 				</script>
@@ -129,11 +122,10 @@ function middlewareJS(packet, file) {
 					var vision = use("kaeon-united")("vision");
 
 					vision.extend(JSON.parse("${
-						JSON.stringify(
-							preprocess(
-								fs.readFileSync(file.file, "utf-8")
-							)
-						)
+						JSON.stringify(preprocess(virtualSystem.getResource(
+							file.file.
+								split(":\\").join("://").split("\\").join("/")
+						)))
 					}");
 
 				</script>
@@ -152,7 +144,9 @@ function middlewareText(packet, file) {
 			"Content-Type": extensionTypes[file.type]
 		},
 		body: preprocess(
-			fs.readFileSync(file.file, "utf-8")
+			virtualSystem.getResource(
+				file.file.split(":\\").join("://").split("\\").join("/")
+			)
 		)
 	}
 }

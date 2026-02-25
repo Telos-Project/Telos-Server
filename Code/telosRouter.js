@@ -1,6 +1,7 @@
 var apint = require("apint");
 var path = require("path");
 var serverUtils = require("./serverUtils.js");
+var virtualSystem = require("virtual-system");
 
 var telosRouter = {
 	config: {
@@ -19,9 +20,13 @@ var telosRouter = {
 				if(packet.tags != null) {
 
 					if(packet.tags.length == 1 &&
-						packet.tags[0] == "telos-engine") {
+						(packet.tags[0] == "telos-engine" ||
+							packet.tags[0] == "telos-engine-refresh")) {
 					
-						telosRouter.tasks = telosRouter.tasks != null ?
+						telosRouter.tasks = (
+							telosRouter.tasks != null &&
+							packet.tags[0] == "telos-engine"
+						) ?
 							telosRouter.tasks :
 							Object.values(
 								serverUtils.getAllFiles(
@@ -37,10 +42,17 @@ var telosRouter = {
 								item => item.file
 							);
 
+						if(packet.tags[0] == "telos-engine-refresh")
+							return;
+
 						telosRouter.tasks.forEach(item => {
 
 							try {
-								use(item)();
+								
+								use(
+									virtualSystem.getResource(item),
+									{ dynamic: true }
+								)();
 							}
 
 							catch(error) {
@@ -94,7 +106,7 @@ var telosRouter = {
 			}
 
 			catch(error) {
-
+				console.log(error);
 			}
 		}
 

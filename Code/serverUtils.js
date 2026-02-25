@@ -1,5 +1,5 @@
-var fs = require("fs");
 var path = require("path");
+var virtualSystem = require("virtual-system");
 
 var extensionTypes = {
 	'txt': 'text/plain',
@@ -43,16 +43,23 @@ function getAllFiles(directory) {
 		return items;
 	}
 
-	fs.readdirSync(directory).forEach(value => {
-		
-		value = directory + path.sep + value;
+	directory = directory.split(":\\").join("://").split("\\").join("/");
 
-		if(fs.statSync(value).isFile())
-			items[value] = getFileData(value);
+	let contents = virtualSystem.getResource(directory);
 
-		else
-			Object.assign(items, getAllFiles(value));
-	})
+	if(!Array.isArray(contents))
+		return;
+
+	contents[0].forEach(item => {
+		Object.assign(items, getAllFiles(directory + path.sep + item));
+	});
+
+	contents[1].forEach(item => {
+
+		item = directory + path.sep + item;
+
+		items[item] = getFileData(item);
+	});
 
 	return items;
 }
@@ -92,7 +99,7 @@ function getFileData(file) {
 
 	return {
 		file: file,
-		folder: fs.lstatSync(file).isDirectory(),
+		folder: Array.isArray(virtualSystem.getResource(file)),
 		meta: file.split(/[\/\\]/).map(item =>
 			item.split(".").slice(1).reduce(
 				(value, item) => {
@@ -127,7 +134,16 @@ function getFiles(items, paths) {
 
 			try {
 
-				fs.readdirSync(file).forEach(item => {
+				file = file.split(":\\").join("://").split("\\").join("/");
+
+				let contents = virtualSystem.getResource(file);
+
+				if(!Array.isArray(contents))
+					return;
+
+				contents = contents[0].concat(contents[1]);
+
+				contents.forEach(item => {
 
 					if(item.toLowerCase().startsWith(alias.toLowerCase()))
 						files.push(file + path.sep + item);
@@ -145,8 +161,17 @@ function getFiles(items, paths) {
 		paths.forEach(file => {
 
 			try {
-		
-				fs.readdirSync(file).forEach(item => {
+
+				file = file.split(":\\").join("://").split("\\").join("/");
+
+				let contents = virtualSystem.getResource(file);
+
+				if(!Array.isArray(contents))
+					return;
+
+				contents = contents[0].concat(contents[1]);
+
+				contents.forEach(item => {
 		
 					if(item.toLowerCase().startsWith("index"))
 						files.push(file + path.sep + item);

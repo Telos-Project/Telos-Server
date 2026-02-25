@@ -3,6 +3,7 @@ var fs = require("fs");
 var http = require("http");
 var https = require("https");
 var busNet = use("bus-net");
+var virtualSystem = require("virtual-system");
 
 var telosServer = {
 	process: ((request, response) => {
@@ -148,6 +149,8 @@ var telosServer = {
 		catch(error) {
 			return;
 		}
+
+		virtualSystem.initiateVirtualSystemDefault();
 
 		let options = packet.content.options.options;
 		
