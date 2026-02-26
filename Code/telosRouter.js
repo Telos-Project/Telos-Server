@@ -63,6 +63,11 @@ var telosRouter = {
 								console.log(error);
 							}
 						});
+					}
+
+					if(packet.tags.length != 2 ||
+						!packet.tags.includes("telos-origin") ||
+						!packet.tags.includes("initialize")) {
 
 						return;
 					}

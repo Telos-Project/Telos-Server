@@ -25,7 +25,7 @@ var telosEngine = {
 			if(packet.tags.includes("telos-configuration") &&
 				packet.tags.length == 1) {
 
-				return telosEngine.initialization = packet;
+				return telosEngine.initialization.content;
 			}
 		}
 
