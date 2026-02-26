@@ -39,7 +39,7 @@ var telosRouter = {
 									Object.keys(item.meta).includes("task") &&
 										item.type == "js"
 							).map(
-								item => item.file
+								item => ({ path: item.file, content: null })
 							);
 
 						if(packet.tags[0] == "telos-engine-refresh")
@@ -49,10 +49,14 @@ var telosRouter = {
 
 							try {
 								
-								use(
-									virtualSystem.getResource(item),
-									{ dynamic: true }
-								)();
+								item.content = item.content != null ?
+									item.content :
+									use(
+										virtualSystem.getResource(item.path),
+										{ dynamic: true }
+									);
+
+								item.content();
 							}
 
 							catch(error) {
