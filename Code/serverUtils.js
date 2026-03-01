@@ -1,3 +1,4 @@
+var net = require('net');
 var path = require("path");
 var virtualSystem = require("virtual-system");
 
@@ -275,6 +276,30 @@ function isHTTPJSON(json) {
 	return true;
 }
 
+function isPortFree(port) {
+
+	return new Promise((resolve, reject) => {
+
+		let server = net.createServer();
+
+		server.once('error', (err) => {
+
+			server.close();
+
+			resolve(false);
+		});
+
+		server.once('listening', () => {
+
+			server.close();
+
+			resolve(true);
+		});
+
+		server.listen(port);
+	});
+}
+
 function processRequest(request, protocol, callback) {
 
 	let text = null;
@@ -304,5 +329,6 @@ module.exports = {
 	getFileData,
 	getFiles,
 	isHTTPJSON,
+	isPortFree,
 	processRequest
 };

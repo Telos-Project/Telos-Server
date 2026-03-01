@@ -155,14 +155,20 @@ var telosServer = {
 		let options = packet.content.options.options;
 		
 		if(options.port != false) {
+			
+			let port =
+				process.env.PORT || (options.port != null ? options.port : 80);
 
-			telosServer.server = http.createServer(telosServer.process);
+			serverUtils.isPortFree(port).then((free) => {
 
-			telosServer.server.listen(
-				process.env.PORT || (options.port != null ? options.port : 80)
-			);
+				if(!free)
+					return;
 
-			console.log("TELOS SERVER ON!");
+				telosServer.server = http.createServer(telosServer.process);
+				telosServer.server.listen(port);
+
+				console.log("TELOS SERVER ON!");
+			});
 		}
 	},
 	server: null,
