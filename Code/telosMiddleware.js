@@ -30,6 +30,8 @@ let fileTypes = [
 	'mp4'
 ];
 
+let apiCache = { };
+
 function middlewareFile(packet, file) {
 					
 	if(!fileTypes.includes(file.type) || file.type == "folder")
@@ -65,7 +67,14 @@ function middlewareJS(packet, file) {
 
 		try {
 
-			let response = use(file.file)(packet);
+			apiCache[file.file] =
+				apiCache[file.file] != null ?
+					apiCache[file.file] :
+					use(
+						virtualSystem.getResource(file.file), { dynamic: true }
+					);
+
+			let response = apiCache[file.file](packet);
 
 			return response != null ? response : { };
 		}
