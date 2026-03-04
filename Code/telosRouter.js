@@ -22,12 +22,13 @@ var telosRouter = {
 					if(packet.tags.length == 1 &&
 						(packet.tags[0] == "telos-engine" ||
 							packet.tags[0] == "telos-engine-refresh")) {
-					
-						telosRouter.tasks = (
-							telosRouter.tasks != null &&
-							packet.tags[0] == "telos-engine"
-						) ?
-							telosRouter.tasks :
+
+						if(telosRouter.tasks == null ||
+							packet.tags[0] == "telos-engine-refresh") {
+
+							telosRouter.tasks = telosRouter.tasks != null ?
+								telosRouter.tasks : { };
+
 							Object.values(
 								serverUtils.getAllFiles(
 									telosRouter.config.directories
@@ -37,26 +38,29 @@ var telosRouter = {
 							).filter(
 								item =>
 									Object.keys(item.meta).includes("task") &&
-										item.type == "js"
-							).map(
-								item => ({ path: item.file, content: null })
-							);
+										item.type == "js" &&
+										telosRouter.tasks[
+											item.file.
+												split(":\\").join("://").
+												split("\\").join("/")
+										] == null
+							).forEach(item => {
 
-						if(packet.tags[0] == "telos-engine-refresh")
-							return;
+								let path = item.file.
+									split(":\\").join("://").
+									split("\\").join("/");
 
-						telosRouter.tasks.forEach(item => {
+								telosRouter.tasks[path] = use(
+									virtualSystem.getResource(path),
+									{ dynamic: true }
+								)
+							});
+						}
+
+						Object.values(telosRouter.tasks).forEach(item => {
 
 							try {
-								
-								item.content = item.content != null ?
-									item.content :
-									use(
-										virtualSystem.getResource(item.path),
-										{ dynamic: true }
-									);
-
-								item.content();
+								item();
 							}
 
 							catch(error) {
