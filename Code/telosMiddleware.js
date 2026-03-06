@@ -18,31 +18,28 @@ let extensionTypes = {
 	'mp4': 'video/mp4'
 };
 
-let fileTypes = [
-	'ico',
-	'png',
-	'jpg',
-	'wav',
-	'mp3',
-	'svg',
-	'pdf',
-	'doc',
-	'mp4'
-];
-
 let apiCache = { };
 
 function middlewareFile(packet, file) {
 					
-	if(!fileTypes.includes(file.type) || file.type == "folder")
+	if(file.type == "folder")
 		return;
 
 	return {
 		headers: {
-			"Content-Type": extensionTypes[file.type]
+			"Content-Type": extensionTypes[file.type] != null ?
+				extensionTypes[file.type] :
+				(file.meta?.pup == null ?
+					"application/octet-stream" : "text/plain")
 		},
-		body: file.file,
-		file: true
+		body: file.meta?.pup == null ?
+			file.file :
+			pup.preprocess(
+				virtualSystem.getResource(
+					file.file.split(":\\").join("://").split("\\").join("/")
+				)
+			),
+		file: file.meta?.pup == null
 	}
 }
 
@@ -107,7 +104,7 @@ function middlewareJS(packet, file) {
 			body: `
 				<script>
 
-					${preprocess(
+					${pup.preprocess(
 						virtualSystem.getResource(
 							file.file.
 								split(":\\").join("://").split("\\").join("/")
@@ -131,10 +128,15 @@ function middlewareJS(packet, file) {
 					var vision = use("kaeon-united")("vision");
 
 					vision.extend(JSON.parse("${
-						JSON.stringify(preprocess(virtualSystem.getResource(
-							file.file.
-								split(":\\").join("://").split("\\").join("/")
-						)))
+						JSON.stringify(
+							pup.preprocess(
+								virtualSystem.getResource(
+									file.file.
+										split(":\\").join("://").
+										split("\\").join("/")
+								)
+							)
+						)
 					}");
 
 				</script>
@@ -143,37 +145,11 @@ function middlewareJS(packet, file) {
 	}
 }
 
-function middlewareText(packet, file) {
-					
-	if(fileTypes.includes(file.type) || file.type == "folder")
-		return;
-
-	return {
-		headers: {
-			"Content-Type": extensionTypes[file.type]
-		},
-		body: preprocess(
-			virtualSystem.getResource(
-				file.file.split(":\\").join("://").split("\\").join("/")
-			)
-		)
-	}
-}
-
-function preprocess(string, file) {
-
-	return (file != null ? file.meta.pup != null : true) ?
-		pup.preprocess(string) : string;
-}
-
 module.exports = {
 	extensionTypes,
-	fileTypes,
 	middleware: {
 		middlewareFile,
 		middlewareFolder,
-		middlewareJS,
-		middlewareText
-	},
-	preprocess
+		middlewareJS
+	}
 };
