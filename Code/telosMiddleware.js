@@ -22,8 +22,8 @@ let apiCache = { };
 
 function middlewareFile(packet, file) {
 					
-	if(file.type == "folder")
-		return;
+	if(file.type == "folder" || file.meta?.api != null)
+		return null;
 
 	return {
 		headers: {
@@ -46,7 +46,7 @@ function middlewareFile(packet, file) {
 function middlewareFolder(packet, file) {
 	
 	if(file.type != "folder")
-		return;
+		return null;
 
 	return {
 		headers: {
@@ -123,11 +123,10 @@ function middlewareJS(packet, file) {
 				"Content-Type": "text/html"
 			},
 			body: `
+				<script src="https://cdn.jsdelivr.net/gh/Telos-Project/JustUI/Code/JustUI.js"></script>
 				<script>
 
-					var vision = use("kaeon-united")("vision");
-
-					vision.extend(JSON.parse("${
+					JustUI.core.extend(JSON.parse("${
 						JSON.stringify(
 							pup.preprocess(
 								virtualSystem.getResource(
