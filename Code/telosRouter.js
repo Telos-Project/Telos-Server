@@ -1,12 +1,23 @@
 var apint = require("apint");
 var path = require("path");
 var serverUtils = require("./serverUtils.js");
-var virtualSystem = require("virtual-system");
+var telosUtils = require("telos-origin/telosUtils.js");
+
+function getByType(package, type) {
+
+	return apint.queryUtilities(
+		package,
+		null,
+		utility => Array.isArray(utility.properties?.tags) ?
+			utility.properties?.tags?.indexOf(type) == 0 :
+			utility.properties?.tags?.toLowerCase() == type.toLowerCase()
+	);
+}
 
 var telosRouter = {
 	config: {
-		directories: [process.cwd() + path.sep + "telos"],
-		default: { }
+		directories: [],
+		options: { }
 	},
 	middleware: [],
 	query: (packet) => {
@@ -17,87 +28,29 @@ var telosRouter = {
 
 				packet = JSON.parse(packet);
 
-				if(packet.tags != null) {
+				if(!packet.tags.includes("telos-origin") ||
+					!packet.tags.includes("initialize")) {
 
-					if(packet.tags.length == 1 &&
-						(packet.tags[0] == "telos-engine" ||
-							packet.tags[0] == "telos-engine-refresh")) {
-
-						if(telosRouter.tasks == null ||
-							packet.tags[0] == "telos-engine-refresh") {
-
-							telosRouter.tasks = telosRouter.tasks != null ?
-								telosRouter.tasks : { };
-
-							Object.values(
-								serverUtils.getAllFiles(
-									telosRouter.config.directories
-								)
-							).filter(
-								item => item != null
-							).filter(
-								item =>
-									Object.keys(item.meta).includes("task") &&
-										item.type == "js" &&
-										telosRouter.tasks[
-											item.file.
-												split(":\\").join("://").
-												split("\\").join("/")
-										] == null
-							).forEach(item => {
-
-								let path = item.file.
-									split(":\\").join("://").
-									split("\\").join("/");
-
-								telosRouter.tasks[path] = use(
-									virtualSystem.getResource(path),
-									{ dynamic: true }
-								)
-							});
-						}
-
-						Object.values(telosRouter.tasks).forEach(item => {
-
-							try {
-								item();
-							}
-
-							catch(error) {
-								console.log(error);
-							}
-						});
-					}
-
-					if(packet.tags.length != 2 ||
-						!packet.tags.includes("telos-origin") ||
-						!packet.tags.includes("initialize")) {
-
-						return;
-					}
+					return;
 				}
 
 				let middleware = [];
 
-				apint.queryUtilities(
-					packet.content.APInt,
-					null,
-					{
-						type: "telos-server-middleware"
-					}
+				getByType(
+					packet.content, "telos-server-middleware"
 				).forEach(item => {
 
-					let busModules = use(
+					let modules = use(
 						Array.isArray(item.source) ?
 							item.source[0] : item.source
 					);
 
-					(Array.isArray(busModules) ?
-						busModules : [busModules]
+					(Array.isArray(modules) ?
+						modules : [modules]
 					).forEach(
-						busModule =>
+						item =>
 							middleware = middleware.concat(
-								Object.values(busModule.middleware)
+								Object.values(item.middleware)
 							)
 					);
 				});
@@ -105,15 +58,16 @@ var telosRouter = {
 				telosRouter.middleware = middleware;
 
 				Object.assign(
-					telosRouter.config,
-					packet.content.options.options
+					telosRouter.config.options,
+					telosUtils.getArguments(packet.content).options
 				);
 
-				telosRouter.config.directories =
-					telosRouter.config.directories.map(
-						item => item.startsWith("./") ?
-							process.cwd() + path.sep + item.substring(2) : item
-					);
+				telosRouter.config.directories = getByType(
+					packet.content, "telos-folder"
+				).map(item => item.content?.startsWith("./") ?
+					process.cwd() + path.sep + item.content.substring(2) :
+					process.cwd() + path.sep + item.content
+				);
 
 				return;
 			}
@@ -160,18 +114,18 @@ var telosRouter = {
 				<!DOCTYPE HTML>
 				<html lang="en-US">
 					<head>
-						${telosRouter.config.default.missing != null ?
+						${telosRouter.config.options.missing != null ?
 							`<meta
 								http-equiv="refresh"
 								content="0; url=${
-									telosRouter.config.default.missing
+									telosRouter.config.options.missing
 								}"
 							/>` :
 							""
 						}
 					</head>
 					<body>
-						${telosRouter.config.default.missing == null ?
+						${telosRouter.config.options.missing == null ?
 							"<pre>404: Not Found</pre>" :
 							""
 						}
@@ -180,7 +134,6 @@ var telosRouter = {
 			`
 		};
 	},
-	tasks: null,
 	tags: ["telos-origin", "telos-router"]
 };
 

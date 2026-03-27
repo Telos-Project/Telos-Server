@@ -1,27 +1,27 @@
 {
 	"utilities": {
-		"telosEngine": {
-			"source": "telos-server/telosEngine.js",
-			"properties": {
-				"type": "bus-module"
-			}
-		},
 		"telosServer": {
 			"source": "telos-server/telosServer.js",
 			"properties": {
-				"type": "bus-module"
+				"tags": ["telos-module"]
 			}
 		},
 		"telosRouter": {
 			"source": "telos-server/telosRouter.js",
 			"properties": {
-				"type": "bus-module"
+				"tags": ["telos-module"]
+			}
+		},
+		"telosWrap": {
+			"source": "telos-server/telosWrap.js",
+			"properties": {
+				"tags": ["telos-module"]
 			}
 		},
 		"telosMiddleware": {
 			"source": "telos-server/telosMiddleware.js",
 			"properties": {
-				"type": "telos-server-middleware"
+				"tags": ["telos-server-middleware"]
 			}
 		}
 	}

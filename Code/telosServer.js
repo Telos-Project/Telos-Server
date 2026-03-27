@@ -1,9 +1,9 @@
-var serverUtils = require("./serverUtils.js");
+var busNet = use("bus-net");
 var fs = require("fs");
 var http = require("http");
 var https = require("https");
-var busNet = use("bus-net");
-var virtualSystem = require("virtual-system");
+var serverUtils = require("./serverUtils.js");
+var telosUtils = use("telos-origin/telosUtils.js");
 
 var telosServer = {
 	process: ((request, response) => {
@@ -13,6 +13,10 @@ var telosServer = {
 			(new Promise((resolve, reject) => {
 
 				let results = busNet.call(data);
+
+				if(results.length == 0)
+					resolve([]);
+
 				let responses = [];
 
 				results.forEach(item => {
@@ -150,9 +154,12 @@ var telosServer = {
 			return;
 		}
 
-		virtualSystem.initiateVirtualSystemDefault();
+		let config = telosUtils.getArguments(packet.content);
 
-		let options = packet.content.options.options;
+		if(config.operation != 'telos-origin/telosOrigin.json')
+			return;
+
+		let options = config.options;
 		
 		if(options.port != false) {
 			
