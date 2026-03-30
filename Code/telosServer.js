@@ -155,11 +155,13 @@ var telosServer = {
 		}
 
 		let config = telosUtils.getArguments(packet.content);
-
-		if(config.operation != 'telos-origin/telosOrigin.json')
-			return;
-
 		let options = config.options;
+
+		if(config.operation != 'telos-origin/telosOrigin.json' &&
+			options.port == null) {
+
+			return;
+		}
 		
 		if(options.port != false) {
 			
@@ -174,7 +176,7 @@ var telosServer = {
 				telosServer.server = http.createServer(telosServer.process);
 				telosServer.server.listen(port);
 
-				console.log("TELOS SERVER ON!");
+				console.log(`TELOS SERVER ON! RUNNING ON PORT ${port}!`);
 			});
 		}
 	},
