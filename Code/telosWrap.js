@@ -40,7 +40,18 @@ module.exports = require(
 		if(!fs.existsSync(telosPath)) {
 
 			fs.writeFileSync(
-				telosPath, fs.readFileSync(__filename, 'utf8')
+				telosPath, fs.readFileSync(
+					`${
+						process.cwd()
+					}${
+						path.sep
+					}node_modules${
+						path.sep
+					}telos-origin${
+						path.sep
+					}telosOrigin.js`,
+					'utf8'
+				)
 			);
 		}
 	}
